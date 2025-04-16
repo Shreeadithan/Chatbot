@@ -1,5 +1,9 @@
 ## RAG Q&A Conversation With PDF Including Chat History
 import streamlit as st
+import re
+import requests
+from bs4 import BeautifulSoup
+from langchain_core.documents import Document
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_chroma import Chroma
@@ -11,9 +15,10 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import (PyPDFLoader, CSVLoader, JSONLoader, UnstructuredExcelLoader, UnstructuredPowerPointLoader)
-import os
-
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from langchain_community.llms import HuggingFacePipeline
 from dotenv import load_dotenv
+import os
 load_dotenv()
 
 os.environ['HF_TOKEN']=os.getenv("HF_TOKEN")
@@ -22,16 +27,24 @@ embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 ## set up Streamlit 
 st.title("Conversational RAG With PDF uplaods and chat history")
-st.write("Upload Pdf's and chat with their content")
+st.write("Upload files and chat with their content")
 
-## Input the Groq API Key
-api_key=st.text_input("Enter your Groq API key:",type="password")
+model_name = "google/gemma-2-9b-it"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
+pipe = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    max_new_tokens=512,
+    temperature=0.7,
+    do_sample=True,
+    top_p=0.95,
+)
+llm = HuggingFacePipeline(pipeline=pipe)
 
 ## Check if groq api key is provided
-if api_key:
-    llm=ChatGroq(groq_api_key=api_key,model_name="Gemma2-9b-It")
-
-    ## chat interface
+if True:
 
     session_id=st.text_input("Session ID",value="default_session")
     ## statefully manage chat history
@@ -69,8 +82,24 @@ if api_key:
             documents.extend(docs)
 
     # Split and create embeddings for the documents
+        links = set()
+        for doc in documents:
+            found_links = re.findall(r'https?://\S+', doc.page_content)
+            links.update(found_links)
+        scraped_docs = []
+        headers = {"User-Agent": "Mozilla/5.0"}
+        for url in links:
+            try:
+                res = requests.get(url, headers=headers, timeout=10)
+                soup = BeautifulSoup(res.text, "html.parser")
+                text = soup.get_text(separator=" ", strip=True)
+                if text:
+                    scraped_docs.append(Document(page_content=text[:10000], metadata={"source": url}))
+            except Exception as e:
+                print(f"Failed to fetch {url}: {e}")
+        all_docs = documents + scraped_docs
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=500)
-        splits = text_splitter.split_documents(documents)
+        splits = text_splitter.split_documents(all_docs)
         vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
         retriever = vectorstore.as_retriever()    
 
