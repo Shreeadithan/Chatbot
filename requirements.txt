@@ -10,3 +10,4 @@ langchain-text-splitters
 chromadb
 pypdf
 python-dotenv
+unstructured[all-docs]
