@@ -10,7 +10,7 @@ from langchain_groq import ChatGroq
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import (PyPDFLoader, CSVLoader, JSONLoader, UnstructuredExcelLoader, UnstructuredPowerPointLoader)
 import os
 
 from dotenv import load_dotenv
@@ -44,13 +44,28 @@ if api_key:
     if uploaded_files:
         documents=[]
         for uploaded_file in uploaded_files:
-            temppdf=f"./temp.pdf"
-            with open(temppdf,"wb") as file:
-                file.write(uploaded_file.getvalue())
-                file_name=uploaded_file.name
+            filename = uploaded_file.name
+            extension = filename.split(".")[-1].lower()
+        
+            filepath = f"./temp.{extension}"
+            with open(filepath, "wb") as f:
+                f.write(uploaded_file.getvalue())
 
-            loader=PyPDFLoader(temppdf)
-            docs=loader.load()
+            if extension == "pdf":
+                loader = PyPDFLoader(filepath)
+            elif extension == "csv":
+                loader = CSVLoader(file_path=filepath)
+            elif extension == "json":
+                loader = JSONLoader(file_path=filepath)
+            elif extension == "xlsx":
+                loader = UnstructuredExcelLoader(filepath)
+            elif extension == "pptx":
+                loader = UnstructuredPowerPointLoader(filepath)
+            else:
+                st.warning(f"Unsupported file type: {extension}")
+                continue
+
+            docs = loader.load()
             documents.extend(docs)
 
     # Split and create embeddings for the documents
