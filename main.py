@@ -116,7 +116,8 @@ if True:
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=500)
         splits = text_splitter.split_documents(all_docs)
         vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
-        retriever = vectorstore.as_retriever()    
+        retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+
 
         contextualize_q_system_prompt=(
             "Given a chat history and the latest user question"
