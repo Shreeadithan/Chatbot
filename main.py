@@ -23,17 +23,16 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
-os.environ['HF_TOKEN']=os.getenv("HF_TOKEN")
 embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
+api_key = os.getenv("GROQ_API_KEY")
 
 ## set up Streamlit 
 st.title("Conversational RAG With PDF uplaods and chat history")
 st.write("Upload files and chat with their content")
 
-model_name = "google/gemma-2-9b-it"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
+model_name = "llama-3.3-70b-versatile"
+'''tokenizer = AutoTokenizer.from_pretrained(model_name)
+#model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
 pipe = pipeline(
     "text-generation",
     model=model,
@@ -42,10 +41,9 @@ pipe = pipeline(
     temperature=0.7,
     do_sample=True,
     top_p=0.95,
-)
-llm = HuggingFacePipeline(pipeline=pipe)
+)'''
+llm=ChatGroq(groq_api_key=api_key,model_name = "llama-3.3-70b-versatile")
 
-## Check if groq api key is provided
 if True:
 
     session_id=st.text_input("Session ID",value="default_session")
@@ -66,52 +64,48 @@ if True:
             with open(filepath, "wb") as f:
                 f.write(uploaded_file.getvalue())
 
-        if extension == "pdf":
-            loader = PyPDFLoader(filepath)
-            docs = loader.load()
-        elif extension == "csv":
-            loader = CSVLoader(file_path=filepath)
-            docs = loader.load()
-        elif extension == "json":
-            loader = JSONLoader(file_path=filepath)
-            docs = loader.load()
-        elif extension == "xlsx":
-            loader = UnstructuredExcelLoader(filepath)
-            docs = loader.load()
-        elif extension == "pptx":
-            loader = UnstructuredPowerPointLoader(filepath)
-            docs = loader.load()
-        elif extension in ["jpg", "jpeg", "png"]:
-            try:
+            if extension == "pdf":
+                loader = PyPDFLoader(filepath)
+                docs = loader.load()
+            elif extension == "csv":
+                loader = CSVLoader(file_path=filepath)
+                docs = loader.load()
+            elif extension == "json":
+                loader = JSONLoader(file_path=filepath)
+                docs = loader.load()
+            elif extension == "xlsx":
+                loader = UnstructuredExcelLoader(filepath)
+                docs = loader.load()
+            elif extension == "pptx":
+                loader = UnstructuredPowerPointLoader(filepath)
+                docs = loader.load()
+            elif extension in ["jpg", "jpeg", "png"]:
                 image = Image.open(filepath)
                 text = pytesseract.image_to_string(image)
                 from langchain.schema import Document 
                 docs = [Document(page_content=text, metadata={"source": filename})]
-            except Exception as e:
-                st.error(f"❌ Failed to extract text from image: {e}")
+            else:
+                st.warning(f"Unsupported file type: {extension}")
                 continue
-        else:
-            st.warning(f"Unsupported file type: {extension}")
-            continue
 
-        documents.extend(docs)
+            documents.extend(docs)
 
-    # Split and create embeddings for the documents
-        links = set()
-        for doc in documents:
-            found_links = re.findall(r'https?://\S+', doc.page_content)
-            links.update(found_links)
-        scraped_docs = []
-        headers = {"User-Agent": "Mozilla/5.0"}
-        for url in links:
-            try:
-                res = requests.get(url, headers=headers, timeout=10)
-                soup = BeautifulSoup(res.text, "html.parser")
-                text = soup.get_text(separator=" ", strip=True)
-                if text:
-                    scraped_docs.append(Document(page_content=text[:10000], metadata={"source": url}))
-            except Exception as e:
-                print(f"Failed to fetch {url}: {e}")
+        # Split and create embeddings for the documents
+            links = set()
+            for doc in documents:
+                found_links = re.findall(r'https?://\S+', doc.page_content)
+                links.update(found_links)
+            scraped_docs = []
+            headers = {"User-Agent": "Mozilla/5.0"}
+            for url in links:
+                try:
+                    res = requests.get(url, headers=headers, timeout=10)
+                    soup = BeautifulSoup(res.text, "html.parser")
+                    text = soup.get_text(separator=" ", strip=True)
+                    if text:
+                        scraped_docs.append(Document(page_content=text[:10000], metadata={"source": url}))
+                except Exception as e:
+                    print(f"Failed to fetch {url}: {e}")
         all_docs = documents + scraped_docs
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=500)
         splits = text_splitter.split_documents(all_docs)
