@@ -11,3 +11,5 @@ chromadb
 pypdf
 python-dotenv
 unstructured[all-docs]
+pytesseract
+Pillow
