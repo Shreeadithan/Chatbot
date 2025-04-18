@@ -17,6 +17,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import (PyPDFLoader, CSVLoader, JSONLoader, UnstructuredExcelLoader, UnstructuredPowerPointLoader)
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from langchain_community.llms import HuggingFacePipeline
+from PIL import Image
+import pytesseract
 from dotenv import load_dotenv
 import os
 load_dotenv()
@@ -52,7 +54,7 @@ if True:
     if 'store' not in st.session_state:
         st.session_state.store={}
 
-    uploaded_files=st.file_uploader("Choose A PDf file",type="pdf",accept_multiple_files=True)
+    uploaded_files = st.file_uploader("Choose a file", type=["pdf", "csv", "json", "xlsx", "pptx", "jpg", "jpeg", "png"], accept_multiple_files=True)
     ## Process uploaded  PDF's
     if uploaded_files:
         documents=[]
@@ -64,22 +66,35 @@ if True:
             with open(filepath, "wb") as f:
                 f.write(uploaded_file.getvalue())
 
-            if extension == "pdf":
-                loader = PyPDFLoader(filepath)
-            elif extension == "csv":
-                loader = CSVLoader(file_path=filepath)
-            elif extension == "json":
-                loader = JSONLoader(file_path=filepath)
-            elif extension == "xlsx":
-                loader = UnstructuredExcelLoader(filepath)
-            elif extension == "pptx":
-                loader = UnstructuredPowerPointLoader(filepath)
-            else:
-                st.warning(f"Unsupported file type: {extension}")
-                continue
-
+        if extension == "pdf":
+            loader = PyPDFLoader(filepath)
             docs = loader.load()
-            documents.extend(docs)
+        elif extension == "csv":
+            loader = CSVLoader(file_path=filepath)
+            docs = loader.load()
+        elif extension == "json":
+            loader = JSONLoader(file_path=filepath)
+            docs = loader.load()
+        elif extension == "xlsx":
+            loader = UnstructuredExcelLoader(filepath)
+            docs = loader.load()
+        elif extension == "pptx":
+            loader = UnstructuredPowerPointLoader(filepath)
+            docs = loader.load()
+        elif extension in ["jpg", "jpeg", "png"]:
+            try:
+                image = Image.open(filepath)
+                text = pytesseract.image_to_string(image)
+                from langchain.schema import Document 
+                docs = [Document(page_content=text, metadata={"source": filename})]
+            except Exception as e:
+                st.error(f"❌ Failed to extract text from image: {e}")
+                continue
+        else:
+            st.warning(f"Unsupported file type: {extension}")
+            continue
+
+        documents.extend(docs)
 
     # Split and create embeddings for the documents
         links = set()
