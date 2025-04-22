@@ -29,6 +29,52 @@ Here is an overview of project's organization
 - **Conversation memory:** Support for multi-turn conversations with context retention
 
 ## ARCHITECTURE AND COMPONENTS
+
 ### CORE ARCHITECTURE AND DESIGN
 ![alt text](https://github.com/Shreeadithan/Chatbot/blob/main/RAGNAROK.webp)
 
+### RAG PIPELINE COMPONENTS
+
+#### 1. 📥 Data Ingestion and Preprocessing
+- Supported formats: PDF, CSV, JSON, PPTX, XLSX, images
+- Parsing tools: LangChain loaders + BeautifulSoup (for scraping)
+- Metadata extraction: Captures file name, page number, URL
+- Chunking strategy: RecursiveCharacterTextSplitter
+-     `chunk_size = 5000`, `chunk_overlap = 500`
+  
+#### 2. 🧬 Embedding and Indexing
+- Embedding model: all-MiniLM-L6-v2 from HuggingFace (compact & fast)
+- Vector database: Chroma DB (local, lightweight, fast)
+- Indexing strategy: Semantic vector storage per chunk
+- Storage: In-memory Chroma, optionally persisten
+
+#### 3. 🔍 Retrieval Mechanism
+- Preprocessing: Optional query rephrasing using conversation history
+- Retrieval: Vector similarity search using Chroma's retriever
+- Ranking: Based on cosine similarity of embedded query vs document chunks
+- Top-k results: Default retrieves top 3 most relevant chunks
+
+#### 4. 🧩 Context Augmentation
+- Formatting: Injects context into the prompt in natural readable form
+- Window management: Handles token limitations via chunk size and overlap
+- Prioritization: Retains top-ranked, highly relevant chunks
+- Metadata preservation: Maintains source references for citation
+
+#### 5. 🧠 Generation
+- LLM used: LLaMA 3.3 70B (via Groq API)
+- Prompting framework: ChatPromptTemplate with history and context placeholders
+
+## ⚙️ Technologies, Libraries, and Frameworks
+
+| Tool/Library          | Purpose                                           |
+| --------------------- | ------------------------------------------------- |
+| FastAPI               | Backend API framework for file upload & querying  |
+| Uvicorn               | ASGI server for serving FastAPI                   |
+| LangChain             | Building blocks for RAG pipelines                 |
+| Chroma                | Lightweight vector database                       |
+| sentence-transformers | For generating text embeddings                    |
+| pytesseract + Pillow  | OCR for extracting text from images               |
+| pdfminer.six, PyPDF2  | PDF parsing utilities                             |
+| BeautifulSoup4        | Scraping and parsing webpage text                 | 
+| dotenv                | Environment variable management for API keys      |
+| HTML/CSS/JS           | Frontend user interface with feedback capabilities|
