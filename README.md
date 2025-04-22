@@ -82,7 +82,7 @@ Here is an overview of project's organization
 ## INSTALLATION INSTRUCTIONS
 ```
 # 1. Clone the repository
-git clone https://github.com/yourusername/your-rag-app.git
+git clone https://github.com/Shreeadithan/Chatbot.git
 cd your-rag-app
 
 # 2. Create and activate a virtual environment
