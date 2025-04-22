@@ -13,3 +13,8 @@ unstructured[all-docs]
 pytesseract
 Pillow
 hf_xet
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+requests
