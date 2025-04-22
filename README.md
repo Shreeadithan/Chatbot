@@ -111,3 +111,7 @@ python -m http.server 3000
 # Then go to: http://localhost:3000
 ```
 
+🚀 Meet RAGnarok — your personal AI research assistant.
+Upload documents, ask meaningful questions, and get context-rich answers with sources — all in a sleek, glowing interface.
+Whether you're a student, researcher, or enthusiast, RAGnarok brings knowledge from multiple sources together — just one question away.
+![alt text](https://github.com/Shreeadithan/Chatbot/blob/main/UI.png)
