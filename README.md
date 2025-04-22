@@ -30,4 +30,5 @@ Here is an overview of project's organization
 
 ## ARCHITECTURE AND COMPONENTS
 ### CORE ARCHITECTURE AND DESIGN
+![alt text](https://github.com/Shreeadithan/Chatbot/blob/main/RAGNAROK.webp)
 
