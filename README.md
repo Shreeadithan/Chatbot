@@ -19,3 +19,12 @@ Here is an overview of project's organization
     ├── main.py                 # primary code file containing the code for developing a RAG application
     └── README.md               # Guidance for readers to comprehend
 
+## KEY FEATURES AND CAPABILITIES
+- **Multi-source knowledge integration:** Ability to process and retrieve information from PDFs, web pages, databases, etc.
+- **Contextual understanding:** Advanced semantic search capabilities for retrieving the most relevant information
+- **Customizable prompt templates:** Flexibility to adjust system prompts for different use cases
+- **Citation tracking:** Automatic tracking of source documents used in responses
+- **Conversation memory:** Support for multi-turn conversations with context retention
+
+## ARCHITECTURE AND COMPONENTS
+
