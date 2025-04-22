@@ -78,3 +78,36 @@ Here is an overview of project's organization
 | BeautifulSoup4        | Scraping and parsing webpage text                 | 
 | dotenv                | Environment variable management for API keys      |
 | HTML/CSS/JS           | Frontend user interface with feedback capabilities|
+
+## INSTALLATION INSTRUCTIONS
+```
+# 1. Clone the repository
+git clone https://github.com/yourusername/your-rag-app.git
+cd your-rag-app
+
+# 2. Create and activate a virtual environment
+python -m venv venv
+
+# On macOS/Linux:
+source venv/bin/activate
+
+# On Windows:
+venv\Scripts\activate
+
+# 3. Install Python dependencies
+pip install -r requirements.txt
+
+# 4. Set up environment variables
+cp .env.example .env
+# (Then open .env and replace placeholders with your actual API keys)
+
+# 5. Run the backend server
+uvicorn backend:app --reload
+
+# 6. Open the frontend
+# Option 1: Double-click index.html to open in browser (best for local)
+# Option 2: Serve via Python if needed:
+python -m http.server 3000
+# Then go to: http://localhost:3000
+```
+
