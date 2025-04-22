@@ -27,4 +27,4 @@ Here is an overview of project's organization
 - **Conversation memory:** Support for multi-turn conversations with context retention
 
 ## ARCHITECTURE AND COMPONENTS
-
+### CORE ARCHITECTURE AND DESIGN
