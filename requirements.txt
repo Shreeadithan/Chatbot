@@ -18,3 +18,4 @@ uvicorn[standard]
 python-multipart
 pydantic
 requests
+pycparser==2.21
