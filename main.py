@@ -44,6 +44,7 @@ api_key = os.getenv("GROQ_API_KEY")
 llm = ChatGroq(groq_api_key=api_key, model_name="llama-3.3-70b-versatile")
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 session_store = {}
+print("GROQ_API_KEY:", os.getenv("GROQ_API_KEY"))
 
 # Load and parse files
 def parse_uploaded_files(uploaded_files: List[UploadFile]) -> List[Document]:
@@ -155,3 +156,8 @@ async def upload_and_query(
         config={"configurable": {"session_id": session_id}}
     )
     return JSONResponse(content={"answer": response["answer"]})
+    from fastapi import FastAPI
+
+@app.get("/")
+def root():
+    return {"message": "Hello from RAG API"}
